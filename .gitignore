@@ -1,0 +1,8 @@
+/demos
+/__pycache__
+/*/__pycache__
+.env
+/venv
+/misc
+.DS_Store
+/*/.DS_Store
