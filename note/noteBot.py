@@ -1,5 +1,10 @@
-from note.noteAssistant import create_note_object
-from note.noteApiCall import create_note_with_api
+import sys
+from pathlib import Path
+
+parent_dir = str(Path(__file__).resolve().parent.parent)
+sys.path.append(parent_dir)
+
+from apiCall import post_message
 
 def setup(bot):
     def process_string(input_string):
@@ -23,17 +28,16 @@ def setup(bot):
         def check(m):
             return authorize(m)
 
-        processed_string = process_string(arg)
         try: 
-            note_object = create_note_object(processed_string)
-            print(f"Assistant's note object: {note_object}")
-            [response_status_code,actual_note_object] = create_note_with_api(note_object, processed_string)
+            processed_string = process_string(arg)
+            data = {"message": processed_string}
+            [response_status_code,actual_note_object] = post_message("note/process-user-message", data)
             if 200 <= response_status_code < 300:
                 await ctx.send(f"Created this note for you:```{actual_note_object}```")
             else:
                 await ctx.send(f"Failed to create note.")
         except:
-            await ctx.send(f"Failed to create note. Exception caused.")
+            await ctx.send(f"Failed to create note due to an exception.")
 
 
 # fix: dont let chatgpt create too much of its own thing

@@ -1,11 +1,15 @@
-import requests
-import os
-from dotenv import load_dotenv
 import json
 from datetime import datetime
+from note.noteAssistant import create_note_object
+from note.noteCreate import add_to_notes_db
 
-load_dotenv()
-api_url = os.getenv("API_URL")
+import sys
+from pathlib import Path
+
+parent_dir = str(Path(__file__).resolve().parent.parent)
+sys.path.append(parent_dir)
+
+from FailedFunctionException import FailedFunctionException
 
 def validate_note(data, initial_note):
     try:
@@ -28,20 +32,23 @@ def validate_note(data, initial_note):
     except json.JSONDecodeError:
         return {'name': initial_note, 'tags': ['Random Thoughts'], 'actual_note': initial_note}
 
-def post_note(api_url, data):
-    response = requests.post(api_url, json=data)
+def create_note(message):
+    note_object = create_note_object(message)
+    print(f"Assistant's note object: {note_object}")
 
-    if response.status_code == 200:
-        print("Successfully posted to API.")
-        return response.status_code, response.json()
-    else:
-        print("Failed to post to API. Status code:", response.status_code)
-        return response.status_code, None
-
-def create_note_with_api(data, initial_note):
-    note = validate_note(data, initial_note)
+    note = validate_note(note_object, message)
     print(f"Validated note: {note}")
-    response_status_code, response = post_note(f"{api_url}/note/execute-add-notion-db", note)
-    return [response_status_code,note]
+
+    try:
+        created_noted = add_to_notes_db(
+            name=note['name'],
+            tags=note['tags'],
+            actual_note=note['actual_note'],
+            url=note['url'],
+            page_content=note['page_content']
+        )
+        return note
+    except Exception as e:
+        raise FailedFunctionException(str(e))
 
 # create_note_with_api("error", "errorasdfasdffasdf")

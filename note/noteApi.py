@@ -1,9 +1,8 @@
 from fastapi import APIRouter, HTTPException, Body
 from typing import Optional, List
 from pydantic import BaseModel
-from note.createNoteNotion import add_to_notes_db
-from note.noteApiCall import create_note_with_api
-from note.noteAssistant import create_note_object
+from note.noteCreate import add_to_notes_db
+from note.noteValidator import create_note
 router = APIRouter()
 
 class NotionRow(BaseModel):
@@ -28,10 +27,9 @@ async def add_row(row: NotionRow):
         raise HTTPException(status_code=500, detail=str(e))
     
 @router.post("/process-user-message/")
-async def process_user_message(message: str):
+async def process_user_message(message: str = Body(..., embed=True)):
     try:
-        note_object = create_note_object(message)
-        print(f"Assistant's note object: {note_object}")
-        [response_status_code,actual_note_object] = create_note_with_api(note_object, message)
+        note = create_note(message)
+        return note
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

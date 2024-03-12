@@ -14,5 +14,5 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(router_remindMe, prefix="/remind_me")
+app.include_router(router_remindMe, prefix="/remind-me")
 app.include_router(router_note, prefix="/note")
